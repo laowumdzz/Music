@@ -1,19 +1,28 @@
 import json
 import os
+import time
 from io import BytesIO
 from urllib.parse import urlparse
 
 import requests as rq
 
+print('检查中')
+if rq.get('https://xiaoapi.cn/API/yy_sq.php?msg=Duvet&type=json').status_code != 200:
+    print('获取失败，正在退出')
+    time.sleep(5)
+    exit()
+print('检查完成')
+print('powered by laowu')
+# noinspection DuplicatedCode
 downloads_path = input("请输入下载路径，默认为./music：")
 downloads_path = "./music/" if downloads_path == "" else downloads_path
+downloads_path = downloads_path + "/" if downloads_path[-1] != "/" else downloads_path
 while True:
-    print("1.下载歌曲 2.关闭")
-    chooise = int(input("请输入数字："))
-    if chooise == 2:
+    print('-----------------------')
+    music_name = input("请输入歌曲名称或输入2退出：")
+    if music_name == "2":
         exit()
     print('-----------------------')
-    music_name = input("请输入歌曲名称：")
     url = "https://xiaoapi.cn/API/yy_sq.php?msg={}&type=json"
     try:
         result = rq.get(url.format(music_name))
@@ -36,13 +45,19 @@ while True:
                 print(
                     "正在下载:\n名字：{0}\n歌手：{1}\n音质：{2}".format(result["name"], result["singer"],
                                                                      result["quality"]))
-
                 url = result['url']
 
                 file_name = os.path.basename(urlparse(url).path)
                 _, ext = os.path.splitext(file_name)
                 save_path = f"{downloads_path}{result['name']}{ext}"
+                while os.path.exists(save_path) is True:
+                    print('-----------------------')
+                    x = input('文件名重复，请输入新文件名或输入1选择覆盖: ')
+                    if x == '1':
+                        break
+                    save_path = f"{downloads_path}{x}{ext}"
 
+                # noinspection DuplicatedCode
                 yy_xz = rq.get(url)
                 if yy_xz.status_code == 200:
                     with open(save_path, "wb") as file:
